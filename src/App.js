@@ -1,23 +1,43 @@
-import logo from './logo.svg';
-import './App.css';
+import InputBox from "./components/InputBox";
+import Card from "./components/Card";
+import { useEffect, useState } from "react";
+import { db } from "./firebase";
+import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 
 function App() {
+  const [notes, setNotes] = useState([]);
+  useEffect(() => {
+    const notesRef = collection(db, "notes");
+    const q = query(notesRef, orderBy("created", "desc"));
+    const unsub = onSnapshot(q, (snapshot) => {
+      const docs = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        data: doc.data(),
+      }));
+      setNotes(docs);
+    });
+  }, []);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+    <div className="app">
+      <header>
+        <h1>Keeper</h1>
       </header>
+      <div className="main">
+        <InputBox />
+        <div className="notesContainer">
+          {notes.map((note) => (
+            <Card
+              title={note.data.title}
+              content={note.data.content}
+              id={note.id}
+            />
+          ))}
+        </div>
+      </div>
+      <footer>
+        Made with <span style={{ color: "red" }}>❤</span> by Abhyas
+      </footer>
     </div>
   );
 }
